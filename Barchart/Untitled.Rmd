@@ -1,0 +1,30 @@
+---
+title: "Try barchart"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+  output$barPlot <- renderPlot({
+    # generate bins based on input$bins from ui.R
+    y_in <- input$y_var
+    x    <- as.numeric(df$`num_category`)
+    
+    
+    ggplot(data=df, aes(x=dose, y = y_in)) + 
+      geom_bar(stat="identity") + 
+      geom_text(aes(label = y_in), vjust = -1, colour = "black") +
+      labs(x = "Kaategori", y = "Ændring i forbrugerprisindeks") +
+      coord_flip()
+    
+  })
+```
