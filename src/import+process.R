@@ -41,7 +41,7 @@ df <- df %>%
   group_by(enhed) %>%
   pivot_wider(names_from = enhed, values_from = vaerdi) %>% 
   separate(varegruppe, into=c("kode","beskrivelse"),sep="\\s",extra="merge") %>% 
-  rename(vaerdi_i = Indeks, vaerdi_ae_m = `Ændring i forhold til måneden før (pct.)`, vaerdi_ae_aa = `Ændring i forhold til samme måned året før (pct.)`)
+  rename(vaerdi_i = Indeks, vaerdi_ae_m = `?ndring i forhold til m?neden f?r (pct.)`, vaerdi_ae_aa = `?ndring i forhold til samme m?ned ?ret f?r (pct.)`)
 
 # create code levels
 
@@ -50,3 +50,9 @@ df <- df %>%
          niv_2=ifelse(str_count(kode,"\\.")==1,kode,NA), 
          niv_3=ifelse(str_count(kode,"\\.")==2,kode,NA),
          niv_4=ifelse(str_count(kode,"\\.")==3,kode,NA))
+
+# Adding column with date converted to type = Date
+df <- df %>%
+  mutate(Dato = str_replace(maaned, "M", "-")) %>%
+  mutate(Dato = paste0(as.character(Dato), "-01")) %>% 
+  mutate(Dato = as.Date(Dato, format = "%Y-%m-%d"))
