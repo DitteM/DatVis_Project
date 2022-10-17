@@ -9,6 +9,9 @@
 
 library(shiny)
 library(shinyWidgets)
+library(ggplot2)
+library(plotly)
+library(tidyverse)
 
 # Dato filter for valg af specific måned. 
 ## https://stackoverflow.com/questions/71193296/how-to-only-select-month-and-year-in-a-shiny-widget
@@ -20,7 +23,7 @@ ui <- navbarPage("Forbrugerprisindeks",
                  tabPanel("Søjlediagram for ændring af forbrugerprisindeks",
                           sidebarLayout(
                             sidebarPanel(
-                              h4("Select your desired filteres:"),
+                              h4("Filtre:"),
                               selectInput("y_var",
                                           label = "Enhed:",
                                           choices = c("Indeks", "Sidste måned", "Samme måned sidste år"),
@@ -34,21 +37,19 @@ ui <- navbarPage("Forbrugerprisindeks",
                                           choices = c("Nievau 1", "Niveau 2", "Niveau 3", "Niveau 4"),
                                           selected =  "Nievau 1"),
                               airDatepickerInput("year_month_input",
-                                                 label = "Month of interest:",
-                                                 value = max(df$Date),
-                                                 minDate = min(df$Date),
-                                                 maxDate = max(df$Date),
+                                                 label = "Måned:",
+                                                 value = max(df$Dato),
+                                                 minDate = min(df$Dato),
+                                                 maxDate = max(df$Dato),
                                                  view = "months",
-                                                 minView = "months", 
-                                                 dateFormat = "yyyy-mm")
-                              )
-                            ),
-                            mainPanel(
-                              plotOutput("barPlot")
-                            )
+                                                 minView = "months",
+                                                 dateFormat = "yyyy-MM")
+                              ),
                             
+                            mainPanel(
+                              plotlyOutput("barPlot")
+                            )
                           )
-                          
                  ),
                  
                  tabPanel("Summary",

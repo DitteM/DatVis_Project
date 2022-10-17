@@ -8,32 +8,57 @@
 #
 
 library(shiny)
+library(ggplot2)
+library(plotly)
+library(tidyverse)
 
-#Kig evt på plotly
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   
-  output$barPlot <- renderPlot({
-    # generate bins based on input$bins from ui.R
-    y_in <- input$y_var
+  output$barPlot <- renderPlotly({
     
-    order_val <- input$order_input
-    reorder_val <- list(y_in, -y_in, +y_in)
-    names(reorder_val) <- c("Numerisk", "Aftagende", "Stigende")
+    # Level of detail
+    niv_val <- list("niv_1", "niv_2", "niv_3", "niv_4")
+    names(niv_val) <- c("Nievau 1", "Niveau 2", "Niveau 3", "Niveau 4")
+    niv_in <- niv_val[[input$niveau_in]]
     
-    order_in <- reorder_val[order_val]
+    # Generates data for plot
+    data_work <- df[!(is.na(df[[niv_in]])),]
+    data_work <- data_work[data_work$Dato == input$year_month_input,]
     
-    x_in <- as.numeric(df$`num_category`)
+    # Specifies the categories
+    x_in <- data_work$beskrivelse
+    
+    # Specefies the values of the categories
+    y_val <- list("vaerdi_i", "vaerdi_ae_m", "vaerdi_ae_aa")
+    names(y_val) <- c("Indeks", "Sidste måned", "Samme måned sidste år")
+    y_in <- y_val[[input$y_var]]
     
     
-    p <- ggplot(data=df, aes(x = reorder(x_in, order_in), y = y_in)) + 
-      geom_bar(stat="identity") + 
-      geom_text(aes(label = y_in), vjust = -1, colour = "black") +
-      labs(x = "Kategori", y = "Ændring i forbrugerprisindeks") +
-      coord_flip()
+    # Deffining plot based on ordering choice 
     
-    ggplotly(p)
+    if(input$order_input == "Numerisk"){
+      p <- ggplotly(ggplot(data=data_work, aes(x = x_in, y = .data[[y_in]])) +
+        geom_bar(stat="identity") + 
+        labs(x = "", y = input$y_var) +
+        coord_flip()
+      )
+    } else if(input$order_input == "Stigende"){
+      p <- ggplotly(ggplot(data=data_work, aes(x = reorder(x_in, .data[[y_in]]), y = .data[[y_in]])) +
+        geom_bar(stat="identity") + 
+        labs(x = "", y = input$y_var) +
+        coord_flip()
+      )
+    } else {
+      p <- ggplotly(ggplot(data=data_work, aes(x = reorder(x_in, desc(.data[[y_in]])), y = .data[[y_in]])) +
+        geom_bar(stat="identity") + 
+        labs(x = "", y = input$y_var) +
+        coord_flip()
+      )
+    }
+    
+  
     
     
     

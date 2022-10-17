@@ -66,9 +66,9 @@ df <- df %>%
 
 
 df <- df %>%
-  mutate(Date = str_replace(maaned, "M", "-")) %>%
-  mutate(Date = paste0(as.character(Date), "-01")) %>% 
-  mutate(Date = as.Date(Date, format = "%Y-%m-%d"))
+  mutate(Dato = str_replace(maaned, "M", "-")) %>%
+  mutate(Dato = paste0(as.character(Dato), "-01")) %>% 
+  mutate(Dato = as.Date(Dato, format = "%Y-%m-%d"))
 ```
 
 
@@ -77,6 +77,7 @@ df <- df %>%
 ```{r}
 #Pakker til visualisering
 library(ggplot2)
+library(plotly)
 ```
 
 
@@ -107,26 +108,57 @@ library(ggplot2)
 
 
 ```{r}
-y_var <- "Indeks"
-order_input <- "Numerisk"
-niveau_in <- "Niveau 1"
-year_month_input <- max(df$Date)
+y_var <- "Sidste måned"
+order_input <- "Stigende"
+niveau_in <- "Niveau 2"
+year_month_input <- min(df$Dato)
 ```
 
 ```{r}
+try <- df[df$Dato == year_month_input, ]
+```
 
 
-output$barPlot <- renderPlot({
-    # generate bins based on input$bins from ui.R
-    y_in <- input$y_var
-    x    <- as.numeric(df$`num_category`)
+```{r}
+
+niv_val <- list("niv_1", "niv_2", "niv_3", "niv_4")
+names(niv_val) <- c("Nievau 1", "Niveau 2", "Niveau 3", "Niveau 4")
+niv_in <- niv_val[[niveau_in]]
+
+data_work <- df[!(is.na(df[[niv_in]])),]
+data_work <- data_work[data_work$Dato == year_month_input,]
+
+x_in <- data_work$beskrivelse
+
+y_val <- list("vaerdi_i", "vaerdi_ae_m", "vaerdi_ae_aa")
+names(y_val) <- c("Indeks", "Sidste måned", "Samme måned sidste år")
+y_in <- y_val[[y_var]]
     
+reorder_val <- list(0, -1, 1)
+names(reorder_val) <- c("Numerisk", "Aftagende", "Stigende")
     
-    ggplot(data=df, aes(x=dose, y = y_in)) + 
-      geom_bar(stat="identity") + 
-      geom_text(aes(label = y_in), vjust = -1, colour = "black") +
-      labs(x = "Kaategori", y = "Ændring i forbrugerprisindeks") +
-      coord_flip()
+order_in <- reorder_val[[order_input]]
+
+
+if(order_input == "Numerisk"){
+  p <- ggplot(data=data_work, aes(x = x_in, y = .data[[y_in]])) +
+    geom_bar(stat="identity") + 
+    labs(x = "", y = y_var) +
+    coord_flip()
+} else if(order_input == "Stigende"){
+  p <- ggplot(data=data_work, aes(x = reorder(x_in, .data[[y_in]]), y = .data[[y_in]])) +
+    geom_bar(stat="identity") + 
+    labs(x = "", y = y_var) +
+    coord_flip()
+} else {
+  p <- ggplot(data=data_work, aes(x = reorder(x_in, desc(.data[[y_in]])), y = .data[[y_in]])) +
+    geom_bar(stat="identity") + 
+    labs(x = "", y = y_var) +
+    coord_flip()
+  
+}
     
-})
+ggplotly(p)
+
+
 ```
