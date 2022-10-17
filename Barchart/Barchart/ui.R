@@ -8,8 +8,11 @@
 #
 
 library(shiny)
+library(shinyWidgets)
 
 # Dato filter for valg af specific måned. 
+## https://stackoverflow.com/questions/71193296/how-to-only-select-month-and-year-in-a-shiny-widget
+
 
 
 # Define UI for application that draws a histogram
@@ -17,6 +20,7 @@ ui <- navbarPage("Forbrugerprisindeks",
                  tabPanel("Søjlediagram for ændring af forbrugerprisindeks",
                           sidebarLayout(
                             sidebarPanel(
+                              h4("Select your desired filteres:"),
                               selectInput("y_var",
                                           label = "Enhed:",
                                           choices = c("Indeks", "Sidste måned", "Samme måned sidste år"),
@@ -28,7 +32,16 @@ ui <- navbarPage("Forbrugerprisindeks",
                               selectInput("niveau_in",
                                           label = "Niveau:",
                                           choices = c("Nievau 1", "Niveau 2", "Niveau 3", "Niveau 4"),
-                                          selected =  "Nievau 1",)
+                                          selected =  "Nievau 1"),
+                              airDatepickerInput("year_month_input",
+                                                 label = "Month of interest:",
+                                                 value = max(df$data),
+                                                 minDate = min(df$data),
+                                                 maxDate = max(df$data),
+                                                 view = "months",
+                                                 minView = "months", 
+                                                 dateFormat = "yyyy-mm")
+                              )
                             ),
                             mainPanel(
                               plotOutput("barPlot")
