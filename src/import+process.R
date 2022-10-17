@@ -8,7 +8,7 @@ library(tidyverse)
 # use fill from tidyr to fill enhed column. 
 # --> fills values top-down until it encounters next valid value
 
-df <- read_xlsx("../all_data.xlsx", skip = 2) %>% 
+df <- read_xlsx("../data/all_data.xlsx", skip = 2) %>% 
   rename(enhed=`...1`,varegruppe=`...2`) %>% 
   fill(enhed, .direction="down")
 
@@ -19,7 +19,7 @@ df[, 3:ncol(df)] <- df[, 3:ncol(df)] %>%
   
 # check that was before ".." is now NA (i.e., no inconsistencies in formatting)
 
-temp <- read_xlsx("../all_data.xlsx", skip = 2) %>% 
+temp <- read_xlsx("../data/all_data.xlsx", skip = 2) %>% 
   rename(enhed=`...1`,varegruppe=`...2`) %>% 
   fill(enhed, .direction="down")
 
@@ -41,7 +41,7 @@ df <- df %>%
   group_by(enhed) %>%
   pivot_wider(names_from = enhed, values_from = vaerdi) %>% 
   separate(varegruppe, into=c("kode","beskrivelse"),sep="\\s",extra="merge") %>% 
-  rename(vaerdi_i = Indeks, vaerdi_ae_m = `Ã†ndring i forhold til mÃ¥neden fÃ¸r (pct.)`, vaerdi_ae_aa = `Ã†ndring i forhold til samme mÃ¥ned Ã¥ret fÃ¸r (pct.)`)
+  rename(vaerdi_i = Indeks, vaerdi_ae_m = `Ændring i forhold til måneden før (pct.)`, vaerdi_ae_aa = `Ændring i forhold til samme måned året før (pct.)`)
 
 # create code levels
 
