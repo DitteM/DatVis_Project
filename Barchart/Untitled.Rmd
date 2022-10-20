@@ -74,6 +74,7 @@ df <- df %>%
 
 
 
+
 ```{r}
 #Pakker til visualisering
 library(ggplot2)
