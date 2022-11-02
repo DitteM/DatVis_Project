@@ -61,6 +61,30 @@ shinyServer(function(input, output) {
       )
     }
     
+    if(input$order_input == "Alfabetisk"){
+      plot_ly(df, x = x_in, y = .data[[y_in]]), type = "bar", color = factor(sign(.data[[y_in]])))
+      p <- ggplotly(ggplot(data=data_work, aes(x = x_in, y = .data[[y_in]])) +
+                      geom_bar(stat="identity", aes(fill = factor(sign(.data[[y_in]])))) + 
+                      labs(x = "", y = input$y_var) +
+                      scale_fill_manual("Legend:", values = c("-1"= "yellow", "0" = "grey", "1" = "blue")) +
+                      coord_flip()
+      )
+    } else if(input$order_input == "Aftagende"){
+      p <- ggplotly(ggplot(data=data_work, aes(x = reorder(x_in, .data[[y_in]]), y = .data[[y_in]])) +
+                      geom_bar(stat="identity", aes(fill = factor(sign(.data[[y_in]])))) + 
+                      labs(x = "", y = input$y_var) +
+                      scale_fill_manual("Legend:", values = c("-1"= "yellow", "0" = "grey", "1" = "blue"), labels = c("Negativ", "Neutral", "Positiv")) +
+                      coord_flip()
+      )
+    } else {
+      p <- ggplotly(ggplot(data=data_work, aes(x = reorder(x_in, desc(.data[[y_in]])), y = .data[[y_in]])) +
+                      geom_bar(stat="identity", aes(fill = factor(sign(.data[[y_in]])))) + 
+                      labs(x = "", y = input$y_var) +
+                      scale_fill_manual("Legend:", values = c("-1"= "yellow", "0" = "grey", "1" = "blue"), labels = c("Negativ", "Neutral", "Positiv")) +
+                      coord_flip()
+      )
+    }
+    
   
     
     
