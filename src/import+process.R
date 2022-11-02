@@ -45,9 +45,9 @@ df <- df %>%
 
 # create code levels
 
-df <- df %>% 
-  mutate(niv_1 = ifelse(str_count(kode,"\\.")==0,kode,NA), 
-         niv_2=ifelse(str_count(kode,"\\.")==1,kode,NA), 
+df <- df %>%
+  mutate(niv_1 = ifelse(str_count(kode,"\\.")==0 | str_count(kode,"\\.")==1 & nchar(kode)==3,kode,NA),
+         niv_2=ifelse(str_count(kode,"\\.")==1 & nchar(kode) > 3,kode,NA),
          niv_3=ifelse(str_count(kode,"\\.")==2,kode,NA),
          niv_4=ifelse(str_count(kode,"\\.")==3,kode,NA))
 
