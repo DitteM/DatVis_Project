@@ -57,11 +57,33 @@ df <- df %>%
          niv_1 = ifelse(niv_1 == "01", "01.", niv_1),
          niv_4 = ifelse(str_count(niv_4)==8, niv_4, substr(niv_4, star=1, stop = 8)))
 
-# adding trace of levels to the data
-#df <- df %>%
- # mutate(niv_3 = ifelse(is.na(niv_3), substr(niv_4, start=1, stop = 6), niv_3),
-  #       niv_2 = ifelse(is.na(niv_2), substr(niv_3, start=1, stop = 4), niv_2),
-   #      niv_1 = ifelse(is.na(niv_1), substr(niv_2, start=1, stop = 3), niv_1))
+
+
+df <- df %>%
+  mutate(niv_3 = ifelse(is.na(niv_3), substr(niv_4, start=1, stop = 6), niv_3),
+         niv_2 = ifelse(is.na(niv_2), substr(niv_3, start=1, stop = 4), niv_2),
+         niv_1 = ifelse(is.na(niv_1), substr(niv_2, start=1, stop = 3), niv_1))
+
+df <- df %>%
+  mutate(beskrivelse_1 = ifelse(!is.na(niv_1) & is.na(niv_2) & is.na(niv_3) & is.na(niv_4),beskrivelse,NA),
+         beskrivelse_2 = ifelse(!is.na(niv_1) & !is.na(niv_2) & is.na(niv_3) & is.na(niv_4),beskrivelse,NA),
+         beskrivelse_3 = ifelse(!is.na(niv_1) & !is.na(niv_2) & !is.na(niv_3) & is.na(niv_4),beskrivelse,NA),
+         beskrivelse_4 = ifelse(!is.na(niv_1) & !is.na(niv_2) & !is.na(niv_3) & !is.na(niv_4),beskrivelse,NA))
+
+df <- df %>% 
+  fill(beskrivelse_1) %>% 
+  
+  group_by(beskrivelse_1) %>% 
+  fill(beskrivelse_2) %>% 
+  ungroup() %>% 
+  
+  group_by(beskrivelse_1,beskrivelse_2) %>% 
+  fill(beskrivelse_3) %>% 
+  ungroup() %>% 
+  
+  group_by(beskrivelse_1,beskrivelse_2,beskrivelse_3) %>% 
+  fill(beskrivelse_4) %>% 
+  ungroup()
 
 # Adding column with date converted to type = Date
 df <- df %>%

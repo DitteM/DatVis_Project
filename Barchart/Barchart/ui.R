@@ -17,26 +17,21 @@ library(tidyverse)
 ## https://stackoverflow.com/questions/71193296/how-to-only-select-month-and-year-in-a-shiny-widget
 
 
-
+units <- colnames(df[4:6])
+levels <- colnames(df[7:10])
 # Define UI for application that draws a histogram
-ui <- navbarPage("Forbrugerprisindeks",
-                 tabPanel("Søjlediagram for ændring af forbrugerprisindeks",
-                          sidebarLayout(
+ui <- fluidPage(sidebarLayout(
                             sidebarPanel(
                               h4("Filtre:"),
-                              selectInput("y_var",
+                              selectInput(inputId = "y_var",
                                           label = "Enhed:",
                                           choices = c("Indeks", "Sidste måned", "Samme måned sidste år"),
                                           selected =  "Sidste måned"),
-                              selectInput("order_input",
+                              selectInput(inputId = "order_input",
                                           label = "Sortering:",
                                           choices = c("Alfabetisk", "Aftagende", "Stigende"),
                                           selected =  "Alfabetisk",),
-                              selectInput("niveau_in",
-                                          label = "Niveau:",
-                                          choices = c("Niveau 1", "Niveau 2", "Niveau 3", "Niveau 4"),
-                                          selected =  "Niveau 1"),
-                              airDatepickerInput("year_month_input",
+                              airDatepickerInput(inputId = "year_month_input",
                                                  label = "Måned:",
                                                  value = max(df$Dato),
                                                  minDate = min(df$Dato),
@@ -44,15 +39,14 @@ ui <- navbarPage("Forbrugerprisindeks",
                                                  view = "months",
                                                  minView = "months",
                                                  dateFormat = "yyyy-MM")
-                              ),
+                            ),
                             
                             mainPanel(
-                              plotlyOutput("barPlot")
+                              plotlyOutput("beskrivelse_1", height = 300),
+                              plotlyOutput("beskrivelse_2", height = 300),
+                              plotlyOutput("beskrivelse_3", height = 300),
+                              plotlyOutput("beskrivelse_4", height = 300)
                             )
                           )
-                 ),
-                 
-                 tabPanel("Summary",
-                          verbatimTextOutput("summary")
-                 )
 )
+

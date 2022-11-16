@@ -17,6 +17,8 @@ library(tidyverse)
 ## https://stackoverflow.com/questions/71193296/how-to-only-select-month-and-year-in-a-shiny-widget
 
 
+units <- colnames(df[4:6])
+levels <- colnames(df[7:10])
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("Forbrugerprisindeks",
@@ -32,6 +34,10 @@ ui <- navbarPage("Forbrugerprisindeks",
                                           label = "Sortering:",
                                           choices = c("Alfabetisk", "Aftagende", "Stigende"),
                                           selected =  "Alfabetisk",),
+                              selectInput("niveau_in",
+                                          label = "Niveau:",
+                                          choices = c("Niveau 1", "Niveau 2", "Niveau 3", "Niveau 4"),
+                                          selected =  "Niveau 1"),
                               airDatepickerInput("year_month_input",
                                                  label = "Måned:",
                                                  value = max(df$Dato),
@@ -40,13 +46,10 @@ ui <- navbarPage("Forbrugerprisindeks",
                                                  view = "months",
                                                  minView = "months",
                                                  dateFormat = "yyyy-MM")
-                            ),
+                              ),
                             
                             mainPanel(
-                              plotlyOutput("Niv_1")
-                              plotlyOutput("Niv_2")
-                              plotlyOutput("Niv_3")
-                              plotlyOutput("Niv_4")
+                              plotlyOutput("barPlot")
                             )
                           )
                  ),
