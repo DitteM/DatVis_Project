@@ -85,8 +85,22 @@ df <- df %>%
   fill(beskrivelse_4) %>% 
   ungroup()
 
+# Filling the description of level 3, with level 4 if empty
+df <- df %>%
+  mutate(beskrivelse_3 = ifelse(is.na(beskrivelse_3), beskrivelse_4, beskrivelse_3))
+
 # Adding column with date converted to type = Date
 df <- df %>%
   mutate(Dato = str_replace(maaned, "M", "-")) %>%
   mutate(Dato = paste0(as.character(Dato), "-01")) %>% 
   mutate(Dato = as.Date(Dato, format = "%Y-%m-%d"))
+
+
+
+
+# Viser problemet med værdier der er 0.0 i højere niveau da de ikke nødvendigvis er det i lavere niveauer
+
+
+#df_try <- df[df$maaned == "2021M09" & df_try$niv_1 == "01.", ] 
+
+#df_try <- df_try[df_try$niv_1 == "01.",]

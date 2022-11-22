@@ -82,7 +82,6 @@ shinyServer(function(input, output){
     
     
     
-    
     # Deffining plot based on ordering choice 
     
     if(input$order_input == "Alfabetisk"){
