@@ -87,7 +87,12 @@ df <- df %>%
 
 # Filling the description of level 3, with level 4 if empty
 df <- df %>%
-  mutate(beskrivelse_3 = ifelse(is.na(beskrivelse_3), beskrivelse_4, beskrivelse_3))
+  mutate(beskrivelse_3 = ifelse(is.na(beskrivelse_3), beskrivelse_4, beskrivelse_3)) %>%
+  mutate(beskrivelse_4 = ifelse(beskrivelse_3==beskrivelse_4, NA, beskrivelse_4)) %>%
+  mutate(beskrivelse_2 = ifelse(is.na(beskrivelse_2), beskrivelse_3, beskrivelse_2)) %>%
+  mutate(beskrivelse_3 = ifelse(beskrivelse_2==beskrivelse_3, NA, beskrivelse_3)) %>%
+  mutate(beskrivelse_1 = ifelse(is.na(beskrivelse_1), beskrivelse_2, beskrivelse_1)) %>%
+  mutate(beskrivelse_2 = ifelse(beskrivelse_1==beskrivelse_2, NA, beskrivelse_2))
 
 # Adding column with date converted to type = Date
 df <- df %>%
@@ -96,11 +101,15 @@ df <- df %>%
   mutate(Dato = as.Date(Dato, format = "%Y-%m-%d"))
 
 
-
+#df <- df %>%
+ # mutate(vaerdi_ae_m = ifelse(vaerdi_ae_m < 0, (-1)*exp(vaerdi_ae_m), exp(vaerdi_ae_m)))
+  
+  
 
 # Viser problemet med værdier der er 0.0 i højere niveau da de ikke nødvendigvis er det i lavere niveauer
 
 
-#df_try <- df[df$maaned == "2021M09" & df_try$niv_1 == "01.", ] 
+#df_try <- df[df$maaned == "2021M09" & df$niv_1 == "01.", ] 
 
-#df_try <- df_try[df_try$niv_1 == "01.",]
+#df_try <- df_try %>%
+ # mutate(vaerdi_ae_m_exp = ifelse(vaerdi_ae_m < 0, (-1)*exp(vaerdi_ae_m), exp(vaerdi_ae_m)))

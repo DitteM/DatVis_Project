@@ -87,7 +87,7 @@ shinyServer(function(input, output){
     if(input$order_input == "Alfabetisk"){
       p <- data_work %>%
         filter(is.na(beskrivelse_2)) %>%
-        plot_ly(x = ~.data[[y_in]], y = ~beskrivelse_1, type = "bar", color = ~.data[[y_in]] > 0, colors = c("yellow", "blue"), source = "beskrivelse_1") %>%
+        plot_ly(x = ~.data[[y_in]], y = ~beskrivelse_1, type = "bar", color = ~.data[[y_in]]>0, colors = c("yellow", "blue"), source = "beskrivelse_1") %>%
         layout(xaxis = list(titel = " "),
                yaxis = list(title = beskrivelse_1),
                showlegend = FALSE)  
