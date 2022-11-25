@@ -51,6 +51,16 @@ df <- df %>%
          niv_3=ifelse(str_count(kode,"\\.")==2,kode,NA),
          niv_4=ifelse(str_count(kode,"\\.")==3,kode,NA))
 
+# Filling the description of level 3, with level 4 if empty
+# Moves lowest level of detail as far up as possible
+df <- df %>%
+  mutate(beskrivelse_3 = ifelse(is.na(beskrivelse_3), beskrivelse_4, beskrivelse_3)) %>%
+  mutate(beskrivelse_4 = ifelse(beskrivelse_3==beskrivelse_4, NA, beskrivelse_4)) %>%
+  mutate(beskrivelse_2 = ifelse(is.na(beskrivelse_2), beskrivelse_3, beskrivelse_2)) %>%
+  mutate(beskrivelse_3 = ifelse(beskrivelse_2==beskrivelse_3, NA, beskrivelse_3)) %>%
+  mutate(beskrivelse_1 = ifelse(is.na(beskrivelse_1), beskrivelse_2, beskrivelse_1)) %>%
+  mutate(beskrivelse_2 = ifelse(beskrivelse_1==beskrivelse_2, NA, beskrivelse_2))
+
 # Adding column with date converted to type = Date
 df <- df %>%
   mutate(Dato = str_replace(maaned, "M", "-")) %>%
