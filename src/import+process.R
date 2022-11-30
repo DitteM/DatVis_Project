@@ -44,18 +44,30 @@ df <- df %>%
   rename(vaerdi_i = Indeks, vaerdi_ae_m = `Ændring i forhold til måneden før (pct.)`, vaerdi_ae_aa = `Ændring i forhold til samme måned året før (pct.)`)
 
 # create code levels
+# df <- df %>%
+#   mutate(kode = gsub("\\-", "\\.", kode)) %>%
+#   mutate(kode = gsub("\\/", "\\.", kode)) %>%
+#   mutate(kode = ifelse(kode == "15.1", "00.15", kode),
+#          kode = ifelse(kode == "14.1", "00.14", kode),
+#          kode = ifelse(kode == "13.1", "12.13.1", kode),
+#          kode = ifelse(kode == "13.2", "12.13.2", kode))
 
+df <- df %>%
+  mutate(kode = gsub("\\-", "\\.", kode)) %>%
+  mutate(kode = gsub("\\/", "\\.", kode))
+  
 df <- df %>%
   mutate(niv_1 = ifelse(str_count(kode,"\\.")==0 | str_count(kode,"\\.")==1 & nchar(kode)==3,kode,NA),
          niv_2=ifelse(str_count(kode,"\\.")==1 & nchar(kode) > 3,kode,NA),
          niv_3=ifelse(str_count(kode,"\\.")==2,kode,NA),
          niv_4=ifelse(str_count(kode,"\\.")==3,kode,NA))
 
+
 # making sure every category is on same form
 df <- df %>%
   mutate(niv_1 = ifelse(niv_1 == "00", "00.", niv_1),
          niv_1 = ifelse(niv_1 == "01", "01.", niv_1),
-         niv_4 = ifelse(str_count(niv_4)==8, niv_4, substr(niv_4, star=1, stop = 8)))
+         niv_4 = ifelse(str_count(niv_4)==8, niv_4, substr(niv_4, start=1, stop = 8))) 
 
 
 
@@ -63,6 +75,15 @@ df <- df %>%
   mutate(niv_3 = ifelse(is.na(niv_3), substr(niv_4, start=1, stop = 6), niv_3),
          niv_2 = ifelse(is.na(niv_2), substr(niv_3, start=1, stop = 4), niv_2),
          niv_1 = ifelse(is.na(niv_1), substr(niv_2, start=1, stop = 3), niv_1))
+
+
+df <- df %>%
+  mutate(niv_1 = ifelse(niv_1 == "13.", "12.", niv_1))
+
+df <- df %>%
+  mutate(niv_1 = ifelse(niv_1 == "14." | niv_1 == "15.", "00.", niv_1))
+
+
 
 df <- df %>%
   mutate(beskrivelse_1 = ifelse(!is.na(niv_1) & is.na(niv_2) & is.na(niv_3) & is.na(niv_4),beskrivelse,NA),
@@ -101,15 +122,9 @@ df <- df %>%
   mutate(Dato = as.Date(Dato, format = "%Y-%m-%d"))
 
 
-#df <- df %>%
- # mutate(vaerdi_ae_m = ifelse(vaerdi_ae_m < 0, (-1)*exp(vaerdi_ae_m), exp(vaerdi_ae_m)))
-  
-  
-
-# Viser problemet med værdier der er 0.0 i højere niveau da de ikke nødvendigvis er det i lavere niveauer
+df <- df %>%
+  mutate(vaerdi_i = ifelse(vaerdi_i==0, 0.001, vaerdi_i)) %>%
+  mutate(vaerdi_ae_m = ifelse(vaerdi_ae_m==0, 0.001, vaerdi_ae_m)) %>%
+  mutate(vaerdi_ae_aa = ifelse(vaerdi_ae_aa==0, 0.001, vaerdi_ae_aa))
 
 
-#df_try <- df[df$maaned == "2021M09" & df$niv_1 == "01.", ] 
-
-#df_try <- df_try %>%
- # mutate(vaerdi_ae_m_exp = ifelse(vaerdi_ae_m < 0, (-1)*exp(vaerdi_ae_m), exp(vaerdi_ae_m)))
