@@ -67,6 +67,30 @@ server <- function(input, output) {
     date4(event_data("plotly_click", source = "niv_4")$x)
   })
   
+  ##### first table
+  
+temp <- subset(df, !is.na(niv_1) & is.na(niv_2) & is.na(niv_3) & is.na(niv_4))  # only get relevant data from original data frame
+  
+temp <- distinct(temp, niv_1, .keep_all = TRUE) %>%  # only get distinct 1st level, but keep all other columns
+    select(niv_1,beskrivelse_1) %>% 
+    mutate(Kode=niv_1, Beskrivelse=beskrivelse_1)
+  
+Kode <- temp$Kode 
+Beskrivelse <- temp$Beskrivelse
+temp <- cbind(Kode,Beskrivelse)  # pull out and cbind to remove numbering on rows in rendered data table
+  
+output$tabel_1 <- renderDataTable({
+    datatable(
+      temp,
+      options = list(
+        scrollX = TRUE,
+        scrollY = "250px"
+      )
+    )
+  })
+  
+  
+  
   #######
   # color scale: -50 to 298 (min of either unit to max)
   output$niv_1 <- renderPlotly({
@@ -80,28 +104,31 @@ server <- function(input, output) {
               # zauto=FALSE, zmin=-50, zmax=298,  # fix colors, across all units, 0-centered
               zauto=FALSE, zmin=min(input$enhed,na.rm=T), zmax=max(input$enhed,na.rm=T), # fix colors, per unit
               colorbar = list(title = "V\u00E6rdiskala,\nenhed", len=1, orientation="h"),
+              reversescale = T,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_1,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
+      colorbar(title = "Heatmap,\nv\u00E6rdiskala", len=1) %>%
       layout(xaxis = list(title = 'M\u00E5nedligt interval'),
-             yaxis = list(title = 'Varegruppe'))
+             yaxis = list(title = 'Varegruppe', autorange="reversed"))
     
     if (is.null(niv_1())) return(p_heat) 
     
     p_hor <- df2() %>%
       filter(is.na(niv_2)) %>%
       filter(niv_1 %in% niv_1()) %>% 
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(y = ~get(input$enhed), x = ~Dato, type = "bar", 
               color = ~I(pos),
               source = "niv_2",
+              # width = max(input$enhed, na.rm=T)/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_1,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = 'M\u00E5nedligt interval'),
-             yaxis = list(title = 'V\u00E6rdi'),
+      layout(xaxis = list(title = 'M\u00E5nedligt interval'),
+             yaxis = list(title = "V\u00E6rdi"),
              showlegend = F)
     
     sub <- subset(df2(), as.Date(Dato)==as.Date(date1()))
@@ -110,22 +137,55 @@ server <- function(input, output) {
     
     p_vert <- sub %>%
       filter(is.na(niv_2)) %>%
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(x = ~get(input$enhed), y = ~niv_1, type = "bar", 
               color = ~I(pos),
               source = "niv_2",
+              # width = max(input$enhed, na.rm=T)/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_1,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = " "),
-             yaxis = list(title = "Varegruppe"),
+      layout(xaxis = list(title = "V\u00E6rdi"),
+             yaxis = list(title = "Varegruppe", autorange="reversed"),
              showlegend = F)
     
     
-    fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    # fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    
+    p <- subplot(p_hor, p_heat, p_vert, shareX = FALSE, shareY = FALSE, titleX=TRUE, titleY=TRUE)
+    p %>% layout(annotations = list(
+      list(x = 0.1 , y = 1.07, text = paste0("Alle m\u00E5neder, varegruppe ", niv_1()), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.5 , y = 1.07, text = "Alle varegrupper, alle m\u00E5neder", 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.9 , y = 1.07, text = paste0("Alle varegrupper, ", format(as.Date(date1()),"%Y-%m")), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper')))
     
   })
+  
+  ##### second table
+  
+  temp2 <- subset(df, !is.na(niv_1) & !is.na(niv_2) & is.na(niv_3) & is.na(niv_4))
+  
+  temp2 <- distinct(temp2, niv_2, .keep_all = TRUE) %>% 
+    select(niv_2,beskrivelse_2) %>% 
+    mutate(Kode=niv_2, Beskrivelse=beskrivelse_2)
+  
+  Kode <- temp2$Kode 
+  Beskrivelse <- temp2$Beskrivelse
+  temp2 <- cbind(Kode,Beskrivelse)
+  
+  output$tabel_2 <- renderDataTable({
+    datatable(
+      temp2,
+      options = list(
+        scrollX = TRUE,
+        scrollY = "250px"
+      )
+    )
+  })
+  
   
   output$niv_2 <- renderPlotly({
     
@@ -147,12 +207,14 @@ server <- function(input, output) {
               # zauto=FALSE, zmin=-50, zmax=298,  # fix colors, across all units
               zauto=FALSE, zmin=min(input$enhed,na.rm=T), zmax=max(input$enhed,na.rm=T), # fix colors, per unit
               colorbar = list(title = "V\u00E6rdiskala,\nenhed", len=1),
+              reversescale = T,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_2,
                            '</br> V\u00E6rdi: ',get(input$enhed))) %>%
+      colorbar(title = "Heatmap,\nv\u00E6rdiskala", len=1) %>%
       layout(xaxis = list(title = 'M\u00E5nedligt interval'),
-             yaxis = list(title = 'Varegruppe')) 
+             yaxis = list(title = 'Varegruppe', autorange="reversed")) 
     
     if (is.null(niv_2())) return(p_heat) 
     
@@ -160,15 +222,16 @@ server <- function(input, output) {
       filter(!is.na(niv_2)) %>%
       filter(is.na(niv_3)) %>%
       filter(niv_2 %in% niv_2()) %>% 
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(y = ~get(input$enhed), x = ~Dato, type = "bar", 
               color = ~I(pos),
               source = "niv_3",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_2,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = 'M\u00E5nedligt interval'),
+      layout(xaxis = list(title = 'M\u00E5nedligt interval'),
              yaxis = list(title = 'V\u00E6rdi'),
              showlegend = F)
     
@@ -179,22 +242,56 @@ server <- function(input, output) {
       filter(!is.na(niv_2)) %>%
       filter(is.na(niv_3)) %>%
       filter(niv_1 %in% niv_1()) %>%
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(x = ~get(input$enhed), y = ~niv_2, type = "bar", 
               color = ~I(pos),
               source = "niv_3",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_2,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = " "),
-             yaxis = list(title = "Varegruppe"),
+      layout(xaxis = list(title = "V\u00E6rdi"),
+             yaxis = list(title = "Varegruppe", autorange="reversed"),
              showlegend = F)
     
     
-    fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    # fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    
+    p <- subplot(p_hor, p_heat, p_vert, shareX = FALSE, shareY = FALSE, titleX=TRUE, titleY=TRUE)
+    p %>% layout(annotations = list(
+      list(x = 0.1 , y = 1.07, text = paste0("Alle m\u00E5neder, varegruppe ", niv_2()), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.5 , y = 1.07, text = "Alle varegrupper, alle m\u00E5neder", 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.9 , y = 1.07, text = paste0("Alle varegrupper, ", format(as.Date(date2()),"%Y-%m")), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper')))
+    
     
   })
+  
+  ##### third table
+  
+  temp3 <- subset(df, !is.na(niv_1) & !is.na(niv_2) & !is.na(niv_3) & is.na(niv_4))
+  
+  temp3 <- distinct(temp3, niv_3, .keep_all = TRUE) %>% 
+    select(niv_3,beskrivelse_3) %>% 
+    mutate(Kode=niv_3, Beskrivelse=beskrivelse_3)
+  
+  Kode <- temp3$Kode 
+  Beskrivelse <- temp3$Beskrivelse
+  temp3 <- cbind(Kode,Beskrivelse)
+  
+  output$tabel_3 <- renderDataTable({
+    datatable(
+      temp3,
+      options = list(
+        scrollX = TRUE,
+        scrollY = "250px"
+      )
+    )
+  })
+  
   
   output$niv_3 <- renderPlotly({
     
@@ -218,12 +315,14 @@ server <- function(input, output) {
               # zauto=FALSE, zmin=-50, zmax=298,  # fix colors, across all units
               zauto=FALSE, zmin=min(input$enhed,na.rm=T), zmax=max(input$enhed,na.rm=T), # fix colors, per unit
               colorbar = list(title = "V\u00E6rdiskala,\nenhed", len=1),
+              reversescale = T,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_3,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
+      colorbar(title = "Heatmap,\nv\u00E6rdiskala", len=1) %>%
       layout(xaxis = list(title = 'M\u00E5nedligt interval'),
-             yaxis = list(title = 'Varegruppe')) 
+             yaxis = list(title = 'Varegruppe', autorange="reversed")) 
     
     if (is.null(niv_3())) return(p_heat) 
     
@@ -231,15 +330,16 @@ server <- function(input, output) {
       filter(!is.na(niv_3)) %>%
       filter(is.na(niv_4)) %>%
       filter(niv_3 %in% niv_3()) %>% 
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(y = ~get(input$enhed), x = ~Dato, type = "bar", 
               color = ~I(pos),
               source = "niv_4",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_3,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = 'M\u00E5nedligt interval'),
+      layout(xaxis = list(title = 'M\u00E5nedligt interval'),
              yaxis = list(title = 'V\u00E6rdi'),
              showlegend = F)
     
@@ -250,22 +350,57 @@ server <- function(input, output) {
       filter(!is.na(niv_3)) %>%
       filter(is.na(niv_4)) %>%
       filter(niv_2 %in% niv_2()) %>%
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(x = ~get(input$enhed), y = ~niv_3, type = "bar", 
               color = ~I(pos),
               source = "niv_4",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_3,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = " "),
-             yaxis = list(title = "Varegruppe"),
+      layout(xaxis = list(title = "V\u00E6rdi"),
+             yaxis = list(title = "Varegruppe", autorange="reversed"),
              showlegend = F)
     
-    fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    # fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    
+    p <- subplot(p_hor, p_heat, p_vert, shareX = FALSE, shareY = FALSE, titleX=TRUE, titleY=TRUE)
+    p %>% layout(annotations = list(
+      list(x = 0.1 , y = 1.07, text = paste0("Alle m\u00E5neder, varegruppe ", niv_3()), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.5 , y = 1.07, text = "Alle varegrupper, alle m\u00E5neder", 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.9 , y = 1.07, text = paste0("Alle varegrupper, ", format(as.Date(date3()),"%Y-%m")), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper')))
     
     
   })
+  
+  ##### fourth table
+  
+  temp4 <- subset(df, !is.na(niv_1) & !is.na(niv_2) & !is.na(niv_4) & !is.na(niv_4))
+  
+  temp4 <- distinct(temp4, niv_4, .keep_all = TRUE) %>% 
+    mutate(Kode=niv_4, Beskrivelse=ifelse(is.na(beskrivelse_4), beskrivelse_3, beskrivelse_4)) %>% 
+    mutate(Beskrivelse=ifelse(is.na(Beskrivelse), beskrivelse_2, Beskrivelse))  # had to add this to ensure that ONE entry, where is has to be drawn from level 2 instead of 3
+  # if level 4 i NA. Code: 08.1.0.1
+  
+  Kode <- temp4$Kode 
+  Beskrivelse <- temp4$Beskrivelse
+  temp4 <- cbind(Kode,Beskrivelse)
+  
+  output$tabel_4 <- renderDataTable({
+    datatable(
+      temp4,
+      options = list(
+        scrollX = TRUE,
+        scrollY = "250px"
+      )
+    )
+  })
+  
+  
   
   output$niv_4 <- renderPlotly({
     
@@ -290,27 +425,30 @@ server <- function(input, output) {
               # zauto=FALSE, zmin=-50, zmax=298,  # fix colors, across all units
               zauto=FALSE, zmin=min(input$enhed,na.rm=T), zmax=max(input$enhed,na.rm=T), # fix colors, per unit
               colorbar = list(title = "V\u00E6rdiskala,\nenhed", len=1),
+              reversescale = T,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_4,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
+      colorbar(title = "Heatmap,\nv\u00E6rdiskala", len=1) %>%
       layout(xaxis = list(title = 'M\u00E5nedligt interval'),
-             yaxis = list(title = 'Varegruppe')) 
+             yaxis = list(title = 'Varegruppe', autorange="reversed")) 
     
     if (is.null(niv_4())) return(p_heat) 
     
     p_hor <- df2() %>%
       filter(!is.na(niv_4)) %>%
       filter(niv_4 %in% niv_4()) %>% 
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(y = ~get(input$enhed), x = ~Dato, type = "bar", 
               color = ~I(pos),
               source = "niv_4",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_4,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = 'M\u00E5nedligt interval'),
+      layout(xaxis = list(title = 'M\u00E5nedligt interval'),
              yaxis = list(title = 'V\u00E6rdi'),
              showlegend = F)
     
@@ -320,19 +458,29 @@ server <- function(input, output) {
     p_vert <- sub %>%
       filter(!is.na(niv_4)) %>%
       filter(niv_3 %in% niv_3()) %>%
-      mutate(pos = ifelse(get(input$enhed) >= 0, "#00008b", "#e5de00")) %>%
+      mutate(pos = ifelse(get(input$enhed) >= 0, "#0D15B6", "#B6AE0D")) %>%
       plot_ly(x = ~get(input$enhed), y = ~niv_4, type = "bar", 
               color = ~I(pos),
               source = "niv_4",
+              # width = max(~get(input$enhed))/10,
               hoverinfo='text',
-              text= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
+              hovertext= ~paste('</br> \u00C5r-m\u00E5ned: ', format(Dato,"%Y-%m"),
                            '</br> Varegruppe: ', beskrivelse_4,
                            '</br> V\u00E6rdi: ', get(input$enhed))) %>%
-      layout(xaxis = list(titel = " "),
-             yaxis = list(title = "Varegruppe"),
+      layout(xaxis = list(title = "V\u00E6rdi"),
+             yaxis = list(title = "Varegruppe", autorange="reversed"),
              showlegend = F)
     
-    fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    # fig <- subplot(p_hor, subplot(p_heat, p_vert, shareY = TRUE))
+    
+    p <- subplot(p_hor, p_heat, p_vert, shareX = FALSE, shareY = FALSE, titleX=TRUE, titleY=TRUE)
+    p %>% layout(annotations = list(
+      list(x = 0.1 , y = 1.07, text = paste0("Alle m\u00E5neder, varegruppe ", niv_2()), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.5 , y = 1.07, text = "Alle varegrupper, alle m\u00E5neder", 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper'),
+      list(x = 0.9 , y = 1.07, text = paste0("Alle varegrupper, ", format(as.Date(date4()),"%Y-%m")), 
+           font = list(size = 14.5), showarrow = F, xref='paper', yref='paper')))
   })
   
   ###################

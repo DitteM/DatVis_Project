@@ -7,6 +7,8 @@ library(shinyWidgets)
 library(ggplot2)
 library(plotly)
 library(tidyverse)
+library(readxl)
+library(DT)
 
 #######################
 ## Tested with fluidPage. Incorporate with tabPanel when merging
@@ -20,8 +22,6 @@ library(tidyverse)
 
 
 #### With horizontal filters
-units <- colnames(df[4:6])
-levels <- colnames(df[7:10])
 
 ui <- fluidPage(
   
@@ -32,9 +32,13 @@ ui <- fluidPage(
       "det danske forbrugerprisindeks.")), 
   p("Data er indhentet fra Danmarks Statistik for m\u00E5nederne januar, 2020, til august, 2022."),
   
-  p("Visualiseringen tillader filtrering p\u00E5 b\u00E5de enhed, m\u00E5neder og sortering (for bar chart).\nBem\u00E6rk, at 
+  p("Visualiseringen tillader filtrering p\u00E5 b\u00E5de enhed og m\u00E5neder.\nBem\u00E6rk, at 
     v\u00E6rdiskalaen \u00E6ndrer sig alt efter, hvilken enhed der v\u00E6lges. S\u00E5ledes repr\u00E6senterer farverne ikke de samme v\u00E6rdier 
     p\u00E5 tv\u00E6rs af enheder."),
+  
+  p("Visningen er bygget op s\u00E5ledes, at et heatmap f\u00F8rst viser alle varegrupper indenfor det p\u00E5\u00E6ldende niveau, for alle m\u00E5neder. Dern\u00E6st trykker brugeren 
+  p\u00E5 en celle, som giver et vertikalt bar chart med alle v\u00E6rdier for alle m\u00E5neder for den valgte varegruppe, og et horisontalt bar chart med alle v\u00E6rdier for alle 
+  varegrupper for den valgte m\u00E5ned."),
   
   br(),
   hr(),
@@ -63,9 +67,42 @@ ui <- fluidPage(
   
   hr(),  # horizontal, grey line
   
+  fluidRow(column(8,
+                  DT::dataTableOutput("tabel_1"),
+  )),
+  
+  br(),
+  
   plotlyOutput("niv_1"),
+  
+  br(),
+  
+  fluidRow(column(8,
+                  DT::dataTableOutput("tabel_2"),
+  )),
+  
+  br(),
+  
   plotlyOutput("niv_2"),
+  
+  br(),
+  
+  fluidRow(column(8,
+                  DT::dataTableOutput("tabel_3"),
+  )),
+  
+  br(),
+  
   plotlyOutput("niv_3"),
+  
+  br(),
+  
+  fluidRow(column(8,
+                  DT::dataTableOutput("tabel_4"),
+  )),
+  
+  br(),
+  
   plotlyOutput("niv_4")
   
 )

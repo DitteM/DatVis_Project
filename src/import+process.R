@@ -43,6 +43,11 @@ df <- df %>%
   separate(varegruppe, into=c("kode","beskrivelse"),sep="\\s",extra="merge") %>% 
   rename(vaerdi_i = Indeks, vaerdi_ae_m = `Ændring i forhold til måneden før (pct.)`, vaerdi_ae_aa = `Ændring i forhold til samme måned året før (pct.)`)
 
+
+df <- df %>%
+  mutate(beskrivelse = ifelse(beskrivelse=="med bus", "Personbefordring med bus", beskrivelse))
+
+
 # create code levels
 # df <- df %>%
 #   mutate(kode = gsub("\\-", "\\.", kode)) %>%
